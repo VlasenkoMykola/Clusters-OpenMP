@@ -45,35 +45,9 @@ std::vector<double> read_prices(const std::string& filename) {
         throw std::runtime_error("Header line is empty in: " + filename);
     }
 
-    //Знаходимо індекс стовпця "Close" або "Adj Close"
-    int close_idx = -1;
-    for (int i = 0; i < (int)header_cols.size(); ++i) {
-        std::string name = trim(header_cols[i]);
-        for (auto &c : name) c = std::tolower(c);
-        if (name == "close") {
-            close_idx = i;
-            break;
-        }
-    }
-    if (close_idx == -1) {
-        for (int i = 0; i < (int)header_cols.size(); ++i) {
-            std::string name = trim(header_cols[i]);
-            for (auto &c : name) c = std::tolower(c);
-            if (name == "adj close" || name == "adjclose") {
-                close_idx = i;
-                break;
-            }
-        }
-    }
-    if (close_idx == -1) {
-        //Резервний варіант: якщо формат "Date,Close", беремо другий стовпець (Close - ціна)
-        if (header_cols.size() >= 2) {
-            std::cerr << "Warning: 'Close' column not found by name, using column 1 (index 1)\n";
-            close_idx = 1;
-        } else {
-            throw std::runtime_error("Cannot determine Close column in header: " + header);
-        }
-    }
+    //В нас друга колонка - ціна "Close", тому індекс 1
+
+    int close_idx = 1;
 
     std::vector<double> prices;
     std::string line;
@@ -382,16 +356,12 @@ int main() {
             }
         }
 
-        // Підсумковий висновок: найкращі N і найшвидші числа потоків
+        //Підсумковий висновок по точності прогнозу
         std::cout << "\n=== Summary: best window sizes by forecast accuracy (minimum MAE) ===\n";
-
         if (best_sma_N != -1) {
             std::cout << "Best window for SMA (simple moving average): N = "
                       << best_sma_N
-                      << ", MAE = " << best_sma_mae
-                      << "\n  Fastest runtime for this N: "
-                      << best_sma_time << " s at threads = " << best_sma_threads
-                      << "\n";
+                      << " with MAE = " << best_sma_mae << "\n";
         } else {
             std::cout << "Best window for SMA: not determined (no valid data).\n";
         }
@@ -399,10 +369,7 @@ int main() {
         if (best_wma_N != -1) {
             std::cout << "Best window for WMA (weighted moving average): N = "
                       << best_wma_N
-                      << ", MAE = " << best_wma_mae
-                      << "\n  Fastest runtime for this N: "
-                      << best_wma_time << " s at threads = " << best_wma_threads
-                      << "\n";
+                      << " with MAE = " << best_wma_mae << "\n";
         } else {
             std::cout << "Best window for WMA: not determined (no valid data).\n";
         }
